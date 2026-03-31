@@ -62,16 +62,16 @@ if [[ ! "${OS_VER}" =~ ^15\. ]]; then
     exit 2
 fi
 
-# Robust install for curl | sudo bash
+# Robust install for curl | sudo bash and local execution
 if [[ ! -f "${INSTALL_PATH}" ]] || [[ "$(readlink -f "$0" 2>/dev/null || echo "$0")" != "${INSTALL_PATH}" ]]; then
     log "A" "Installing to ${INSTALL_PATH}"
-    cat > "${INSTALL_PATH}" << 'INSTALL_END'
+    if [[ -f "$0" && "$0" != "bash" ]]; then
+        cp -f "$0" "${INSTALL_PATH}"
+    else
+        cat > "${INSTALL_PATH}" << 'EOF'
 #!/bin/bash
 exec /usr/local/bin/noTahoe "$@"
-INSTALL_END
-    if [[ -f "$0" && "$0" != "bash" ]]; then
-        cat "$0" > "${INSTALL_PATH}"
-    else
+EOF
         cat /dev/stdin > "${INSTALL_PATH}" 2>/dev/null || true
     fi
     chmod 755 "${INSTALL_PATH}"
