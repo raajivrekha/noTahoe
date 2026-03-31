@@ -62,18 +62,18 @@ if [[ ! "${OS_VER}" =~ ^15\. ]]; then
     exit 2
 fi
 
-# Robust install block for both local file and curl | sudo bash
+# FIXED: Robust install that works with curl | sudo bash
 if [[ ! -f "${INSTALL_PATH}" ]] || [[ "$(readlink -f "$0" 2>/dev/null || echo "$0")" != "${INSTALL_PATH}" ]]; then
     log "A" "Installing to ${INSTALL_PATH}"
-    # Safe copy method that works in all invocation styles
-    if [[ -f "$0" && "$0" != *"bash"* ]]; then
-        cp -f "$0" "${INSTALL_PATH}"
-    else
-        cat > "${INSTALL_PATH}" << 'INSTALL_EOF'
+    # This is the reliable way for piped execution
+    cat > "${INSTALL_PATH}" << 'INSTALL_END'
 #!/bin/bash
 exec /usr/local/bin/noTahoe "$@"
-INSTALL_EOF
-        # If we have stdin content, use it
+INSTALL_END
+    # Copy real content (works for both local file and pipe)
+    if [[ -f "$0" && "$0" != "bash" ]]; then
+        cat "$0" > "${INSTALL_PATH}"
+    else
         cat /dev/stdin > "${INSTALL_PATH}" 2>/dev/null || true
     fi
     chmod 755 "${INSTALL_PATH}"
@@ -110,9 +110,11 @@ xprotect check 2>/dev/null || true
 sudo xprotect update 2>/dev/null || log "! " "No XProtect change needed"
 log "A" "XProtect version: $(xprotect version 2>/dev/null || echo unknown)"
 
-# LaunchAgent
+# LaunchAgent (single clean plist)
 log "i" "Setting up LaunchAgent"
-find "${HOME}/Library/LaunchAgents" -name "*noTahoe*.plist" -delete 2>/dev/null || true
+# Cleanup any old agents
+find "${HOME}/Library/LaunchAgents" -name "com.apple.noTahoeSecurity.*.plist" -delete 2>/dev/null || true
+find "${HOME}/Library/LaunchAgents" -name "com.noTahoe.*.plist" -delete 2>/dev/null || true
 
 mkdir -p "${HOME}/Library/LaunchAgents"
 
