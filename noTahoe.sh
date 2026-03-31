@@ -4,16 +4,16 @@
 # Simple, zero-interaction script. Keeps you on Sequoia while allowing security updates.
 #
 # Features:
-#   - Blocks Tahoe major upgrade via Apple audience trick (no betas installed)
-#   - Clears red badge on System Settings
-#   - Native XProtect/MRT updates only
-#   - Single clean LaunchAgent: com.noTahoe.plist (weekly Sunday 3AM)
-#   - Automatic log cleanup (30 days + 50MB)
-#   - Self-installs to /usr/local/bin/noTahoe
+# - Blocks Tahoe major upgrade via Apple audience trick (no betas installed)
+# - Clears red badge on System Settings
+# - Native XProtect/MRT updates only
+# - Single clean LaunchAgent: com.noTahoe.plist (weekly Sunday 3AM)
+# - Automatic log cleanup (30 days + 50MB)
+# - Self-installs to /usr/local/bin/noTahoe
 #
 # Usage:
-#   chmod +x noTahoe.sh && ./noTahoe.sh
-#   After first run: just type "noTahoe" from anywhere
+# chmod +x noTahoe.sh && ./noTahoe.sh
+# After first run: just type "noTahoe" from anywhere
 #
 # Author: Public domain / feel free to fork
 # License: MIT
@@ -62,13 +62,14 @@ if [[ ! "${OS_VER}" =~ ^15\. ]]; then
     exit 2
 fi
 
-# Recursion guard + forced install
-CURRENT_PATH="$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")"
-if [[ "${CURRENT_PATH}" != "${INSTALL_PATH}" ]]; then
+# Recursion guard + forced install (FIXED for curl | sudo bash)
+if [[ ! -f "${INSTALL_PATH}" ]] || [[ "$(readlink -f "$0" 2>/dev/null || echo "$0")" != "${INSTALL_PATH}" ]]; then
     log "A" "Installing to ${INSTALL_PATH}"
-    cp -f "$0" "${INSTALL_PATH}"
+    # Use cat to handle the case when $0 is "bash" from pipe
+    cat "$0" > "${INSTALL_PATH}"
     chmod 755 "${INSTALL_PATH}"
     chown root:wheel "${INSTALL_PATH}" 2>/dev/null || true
+    log "A" "Installed. Future runs: noTahoe"
     exec "${INSTALL_PATH}"
 fi
 
