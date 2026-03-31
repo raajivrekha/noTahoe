@@ -62,11 +62,11 @@ if [[ ! "${OS_VER}" =~ ^15\. ]]; then
     exit 2
 fi
 
-# Recursion guard + forced install (FIXED for curl | sudo bash)
+# FIXED recursion guard for curl | sudo bash
 if [[ ! -f "${INSTALL_PATH}" ]] || [[ "$(readlink -f "$0" 2>/dev/null || echo "$0")" != "${INSTALL_PATH}" ]]; then
     log "A" "Installing to ${INSTALL_PATH}"
-    # Use cat to handle the case when $0 is "bash" from pipe
-    cat "$0" > "${INSTALL_PATH}"
+    # Use cat from current script content (works when $0 is "bash")
+    cat /dev/stdin > "${INSTALL_PATH}" 2>/dev/null || cat "$0" > "${INSTALL_PATH}"
     chmod 755 "${INSTALL_PATH}"
     chown root:wheel "${INSTALL_PATH}" 2>/dev/null || true
     log "A" "Installed. Future runs: noTahoe"
